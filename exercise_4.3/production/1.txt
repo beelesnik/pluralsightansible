@@ -1,0 +1,29 @@
+vagrant@acs:~/ansible/exercise_4.3/production$ ansible web1 -i inventory_prod -m ping
+web1 | FAILED => Using a SSH password instead of a key is not possible because Host Key checking is enabled and sshpass does not support this.  Please add this host's fingerprint to your known_hosts file to manage this host.
+vagrant@acs:~/ansible/exercise_4.3/production$ nano ansible.cfg
+vagrant@acs:~/ansible/exercise_4.3/production$ ansible web1 -i inventory_prod -m ping
+web1 | success >> {
+    "changed": false,
+    "ping": "pong"
+}
+
+vagrant@acs:~/ansible/exercise_4.3/production$ cat ansible.cfg
+[defaults]
+host_key_checking=False
+vagrant@acs:~/ansible/exercise_4.3/production$
+
+
+
+
+
+
+vagrant@acs:~/ansible/exercise_4.3/production$ cat ansible.cfg
+[defaults]
+host_key_checking=False
+vagrant@acs:~/ansible/exercise_4.3/production$ export ANSIBLE_HOST_KEY_CHECKING=True
+vagrant@acs:~/ansible/exercise_4.3/production$ echo $ANSIBLE_HOST_KEY_CHECKING
+True
+vagrant@acs:~/ansible/exercise_4.3/production$ ansible all -i inventory_prod -m ping
+web1 | FAILED => Using a SSH password instead of a key is not possible because Host Key checking is enabled and sshpass does not support this.  Please add this host's fingerprint to your known_hosts file to manage this host.
+db1 | FAILED => Using a SSH password instead of a key is not possible because Host Key checking is enabled and sshpass does not support this.  Please add this host's fingerprint to your known_hosts file to manage this host.
+vagrant@acs:~/ansible/exercise_4.3/production$
