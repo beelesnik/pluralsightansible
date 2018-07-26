@@ -1,0 +1,4 @@
+ansible web1 -i inventory  -m ping
+ansible webservers -i inventory  -m ping
+ansible datacenter -i inventory  -m ping
+
