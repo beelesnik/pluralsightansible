@@ -1,0 +1,2 @@
+vagrant@acs:~/ansible$ git remote add origin git@github.com:beelesnik/pluralsightansible.git
+vagrant@acs:~/ansible$ git push -u origin master
