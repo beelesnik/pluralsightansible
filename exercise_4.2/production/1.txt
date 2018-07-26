@@ -1,0 +1,62 @@
+vagrant@acs:~/ansible/exercise_4.2/production$ ansible webservers -i inventory_prod -m user -a "name={{username}} password=12345"
+web1 | FAILED >> {
+    "cmd": [
+        "/usr/sbin/useradd",
+        "-p",
+        "12345",
+        "-m",
+        "all_username"
+    ],
+    "failed": true,
+    "msg": "[Errno 13] Permission denied",
+    "rc": 13
+}
+
+vagrant@acs:~/ansible/exercise_4.2/production$ ansible webservers -i inventory_prod -m user -a "name={{username}} password=12345" --sudo
+web1 | success >> {
+    "changed": true,
+    "comment": "",
+    "createhome": true,
+    "group": 501,
+    "home": "/home/all_username",
+    "name": "all_username",
+    "password": "NOT_LOGGING_PASSWORD",
+    "shell": "/bin/bash",
+    "state": "present",
+    "system": false,
+    "uid": 501
+}
+
+
+
+vagrant@acs:~/ansible/exercise_4.2/production$ ansible webservers -i inventory_prod -m user -a "name={{username}} password=12345" --sudo
+web1 | success >> {
+    "changed": true,
+    "comment": "",
+    "createhome": true,
+    "group": 502,
+    "home": "/home/group_user",
+    "name": "group_user",
+    "password": "NOT_LOGGING_PASSWORD",
+    "shell": "/bin/bash",
+    "state": "present",
+    "system": false,
+    "uid": 502
+}
+
+vagrant@acs:~/ansible/exercise_4.2/production$ ansible webservers -i inventory_prod -m user -a "name={{username}} password=12345" --sudo
+web1 | success >> {
+    "changed": true,
+    "comment": "",
+    "createhome": true,
+    "group": 503,
+    "home": "/home/web1_user",
+    "name": "web1_user",
+    "password": "NOT_LOGGING_PASSWORD",
+    "shell": "/bin/bash",
+    "state": "present",
+    "system": false,
+    "uid": 503
+}
+
+
