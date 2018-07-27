@@ -1,0 +1,275 @@
+### Simple playbook
+
+vagrant@acs:~/ansible/exercise_6_1$ cat web_db.yml.1
+---
+- hosts: webservers
+  sudo: yes
+
+  tasks:
+  - name: Ensure that Apache is installed
+    yum: name=httpd state=present
+
+  - name: Start Apache Services
+    service: name=httpd enabled=yes state=started
+
+- hosts: dbservers
+  sudo: yes
+
+  tasks:
+  - name: Ensure MySQL is installed
+    yum: name=mysql-server state=present
+
+  - name: Start MySQL
+    service: name=mysqld state=started
+
+- hosts: webservers:dbservers
+  sudo: yes
+
+  tasks:
+  - name: Stop IPTABLES NOW!!!
+    service: name=iptables state=stopped
+
+vagrant@acs:~/ansible/exercise_6_1$ ansible-playbook web_db.yml.1
+
+PLAY [webservers] *************************************************************
+
+GATHERING FACTS ***************************************************************
+ok: [web1]
+
+TASK: [Ensure that Apache is installed] ***************************************
+ok: [web1]
+
+TASK: [Start Apache Services] *************************************************
+ok: [web1]
+
+PLAY [dbservers] **************************************************************
+
+GATHERING FACTS ***************************************************************
+ok: [db1]
+
+TASK: [Ensure MySQL is installed] *********************************************
+ok: [db1]
+
+TASK: [Start MySQL] ***********************************************************
+ok: [db1]
+
+PLAY [webservers:dbservers] ***************************************************
+
+GATHERING FACTS ***************************************************************
+ok: [web1]
+ok: [db1]
+
+TASK: [Stop IPTABLES NOW!!!] **************************************************
+ok: [web1]
+ok: [db1]
+
+PLAY RECAP ********************************************************************
+db1                        : ok=5    changed=0    unreachable=0    failed=0
+web1                       : ok=5    changed=0    unreachable=0    failed=0
+
+vagrant@acs:~/ansible/exercise_6_1$
+
+
+
+###  Generate an error because db1 has no authentication parameters
+vagrant@acs:~/ansible/exercise_6_1$ cat inventory.db.fail
+acs ansible_ssh_host=192.168.33.10 ansible_ssh_user=vagrant ansible_ssh_pass=vagrant
+web1 ansible_ssh_host=192.168.33.20 ansible_ssh_user=vagrant ansible_ssh_pass=vagrant username=ansible_user
+db1 ansible_ssh_host=192.168.33.30
+[webservers]
+web1
+
+[dbservers]
+db1
+
+[datacenter:children]
+webservers
+dbservers
+
+[datacenter:vars]
+vagrant@acs:~/ansible/exercise_6_1$ ansible-playbook -i inventory.db.fail web_db.yml.1
+
+PLAY [webservers] *************************************************************
+
+GATHERING FACTS ***************************************************************
+ok: [web1]
+
+TASK: [Ensure that Apache is installed] ***************************************
+ok: [web1]
+
+TASK: [Start Apache Services] *************************************************
+ok: [web1]
+
+PLAY [dbservers] **************************************************************
+
+GATHERING FACTS ***************************************************************
+fatal: [db1] => SSH encountered an unknown error during the connection. We recommend you re-run the command using -vvvv, which will enable SSH debugging output to help diagnose the issue
+
+TASK: [Ensure MySQL is installed] *********************************************
+FATAL: no hosts matched or all hosts have already failed -- aborting
+
+
+PLAY RECAP ********************************************************************
+           to retry, use: --limit @/home/vagrant/web_db.1.retry
+
+db1                        : ok=0    changed=0    unreachable=1    failed=0
+web1                       : ok=3    changed=0    unreachable=0    failed=0
+
+vagrant@acs:~/ansible/exercise_6_1$
+
+
+
+vagrant@acs:~/ansible/exercise_6_1$ cat /home/vagrant/web_db.1.retry
+db1 
+
+
+###  After correcting inventory file (added authentication parameters) retry to play playbook using .retry file
+
+vagrant@acs:~/ansible/exercise_6_1$ ansible-playbook  web_db.yml.1  --limit @/home/vagrant/web_db.1.retry
+
+PLAY [webservers] *************************************************************
+skipping: no hosts matched
+
+PLAY [dbservers] **************************************************************
+
+GATHERING FACTS ***************************************************************
+ok: [db1]
+
+TASK: [Ensure MySQL is installed] *********************************************
+ok: [db1]
+
+TASK: [Start MySQL] ***********************************************************
+ok: [db1]
+
+PLAY [webservers:dbservers] ***************************************************
+
+GATHERING FACTS ***************************************************************
+ok: [db1]
+
+TASK: [Stop IPTABLES NOW!!!] **************************************************
+ok: [db1]
+
+PLAY RECAP ********************************************************************
+db1                        : ok=5    changed=0    unreachable=0    failed=0
+
+vagrant@acs:~/ansible/exercise_6_1$
+
+
+
+##### Added many parts to playbook
+
+vagrant@acs:~/ansible/exercise_6_1$ cat web_db.yml.2
+---
+- hosts: webservers
+  sudo: yes
+  vars:
+    http_port: 80
+    doc_dir: /ansible/
+    doc_root: /var/www/html/ansible/
+    max_clients: 5
+
+  vars_prompt:
+    - name: username
+      prompt:  What is your name?  What is your Quest?  What is your fav color?
+
+  tasks:
+  - name: Ensure that Apache is installed
+    yum: name=httpd state=present
+    when: ansible_os_family == "RedHat"
+
+  - name: Start Apache Services
+    service: name=httpd enabled=yes state=started
+
+  - name: Create doc_root directory
+    file: path=/var/www/html/{{ doc_dir }} state=directory mode=0777
+
+  - name: Deploy configuration File
+    template: src=templates/httpd.j2 dest=/etc/httpd/conf/httpd.conf
+    notify:
+      - Restart Apache
+
+  - name: Copy Site Files
+    template: src=templates/index.j2 dest={{ doc_root }}/index.html mode=0666
+
+  handlers:
+     - name: Restart Apache
+       service: name=httpd state=restarted
+
+- hosts: dbservers
+  sudo: yes
+
+  tasks:
+  - name: Ensure MySQL is installed
+    yum: name=mysql-server state=present
+    when: ansible_os_family == "RedHat"
+
+  - name: Start MySQL
+    service: name=mysqld state=started
+
+- hosts: webservers:dbservers
+  sudo: yes
+
+  tasks:
+  - name: Stop IPTABLES NOW!!!
+    service: name=iptables state=stopped
+
+vagrant@acs:~/ansible/exercise_6_1$ ansible-playbook web_db.yml.2
+What is your name?  What is your Quest?  What is your fav color?:
+
+PLAY [webservers] *************************************************************
+
+GATHERING FACTS ***************************************************************
+ok: [web1]
+
+TASK: [Ensure that Apache is installed] ***************************************
+ok: [web1]
+
+TASK: [Start Apache Services] *************************************************
+ok: [web1]
+
+TASK: [Create doc_root directory] *********************************************
+ok: [web1]
+
+TASK: [Deploy configuration File] *********************************************
+changed: [web1]
+
+TASK: [Copy Site Files] *******************************************************
+changed: [web1]
+
+NOTIFIED: [Restart Apache] ****************************************************
+changed: [web1]
+
+PLAY [dbservers] **************************************************************
+
+GATHERING FACTS ***************************************************************
+ok: [db1]
+
+TASK: [Ensure MySQL is installed] *********************************************
+ok: [db1]
+
+TASK: [Start MySQL] ***********************************************************
+ok: [db1]
+
+PLAY [webservers:dbservers] ***************************************************
+
+GATHERING FACTS ***************************************************************
+ok: [web1]
+ok: [db1]
+
+TASK: [Stop IPTABLES NOW!!!] **************************************************
+ok: [web1]
+ok: [db1]
+
+PLAY RECAP ********************************************************************
+db1                        : ok=5    changed=0    unreachable=0    failed=0
+web1                       : ok=9    changed=3    unreachable=0    failed=0
+
+Next open link:
+vagrant@acs:~/ansible/exercise_6_1$ curl http://192.168.33.20/ansible/
+<html>
+<head><title>Hello from Ansible!!</title></head>
+<body>
+<H1>Congratulations!</h1>
+<p>Nice job Sergey!!  You have successfully ran your first playbook!  Woohooo!  Now get yourself a drink to celebrate!</p>
+</body>
+</html>
