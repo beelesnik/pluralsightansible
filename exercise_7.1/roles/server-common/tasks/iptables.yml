@@ -1,0 +1,3 @@
+---
+- name: Stop IPTABLES NOW!!!
+  service: name=iptables state=stopped

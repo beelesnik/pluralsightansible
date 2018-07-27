@@ -1,0 +1,87 @@
+### Execute whole playbook
+vagrant@acs:~/ansible/exercise_7.1$ ansible-playbook site.yml
+
+PLAY [webservers:dbservers] ***************************************************
+
+TASK: [server-common | Stop IPTABLES NOW!!!] **********************************
+ok: [web1]
+ok: [db1]
+
+PLAY [webservers] *************************************************************
+
+TASK: [webserver | Ensure that Apache is installed] ***************************
+ok: [web1]
+
+TASK: [webserver | Start Apache Services] *************************************
+ok: [web1]
+
+TASK: [webserver | Create doc_root directory] *********************************
+ok: [web1]
+
+TASK: [webserver | Deploy configuration File] *********************************
+ok: [web1]
+
+TASK: [webserver | Copy Site Files] *******************************************
+ok: [web1]
+
+PLAY [dbservers] **************************************************************
+
+TASK: [dbserver | Ensure MySQL is installed] **********************************
+ok: [db1]
+
+TASK: [dbserver | Start MySQL] ************************************************
+ok: [db1]
+
+PLAY RECAP ********************************************************************
+db1                        : ok=3    changed=0    unreachable=0    failed=0
+web1                       : ok=6    changed=0    unreachable=0    failed=0
+
+vagrant@acs:~/ansible/exercise_7.1$
+
+
+### Execute only webservers role
+
+
+vagrant@acs:~/ansible/exercise_7.1$ ansible-playbook webservers.yml
+
+PLAY [webservers] *************************************************************
+
+TASK: [webserver | Ensure that Apache is installed] ***************************
+ok: [web1]
+
+TASK: [webserver | Start Apache Services] *************************************
+ok: [web1]
+
+TASK: [webserver | Create doc_root directory] *********************************
+ok: [web1]
+
+TASK: [webserver | Deploy configuration File] *********************************
+ok: [web1]
+
+TASK: [webserver | Copy Site Files] *******************************************
+ok: [web1]
+
+PLAY RECAP ********************************************************************
+web1                       : ok=5    changed=0    unreachable=0    failed=0
+
+vagrant@acs:~/ansible/exercise_7.1$
+
+
+### Execute only dbservers role
+
+
+vagrant@acs:~/ansible/exercise_7.1$ ansible-playbook dbservers.yml
+
+PLAY [dbservers] **************************************************************
+
+TASK: [dbserver | Ensure MySQL is installed] **********************************
+ok: [db1]
+
+TASK: [dbserver | Start MySQL] ************************************************
+ok: [db1]
+
+PLAY RECAP ********************************************************************
+db1                        : ok=2    changed=0    unreachable=0    failed=0
+
+
+

@@ -1,0 +1,5 @@
+---
+#- include: snmp.yml
+#- include: syslog.yml
+- include: iptables.yml
+
